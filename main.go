@@ -29,14 +29,14 @@ var movies = []Movie{
 }
 
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/movies", getMovies).Method("GET")
-	r.HandleFunc("/movies/{id}", getMovie).Method("GET")
-	r.HandleFunc("/movies", createMovie).Method("POST")
-	r.HandleFunc("/movies/{id}", updateMovie).Method("PUT")
-	r.HandleFunc("/movies/{id}", deleteMovie).Method("DELETE")
+	router := mux.NewRouter()
+	router.HandleFunc("/movies", getMovies).Method("GET")
+	router.HandleFunc("/movies/{id}", getMovieById).Method("GET")
+	router.HandleFunc("/movies", createMovie).Method("POST")
+	router.HandleFunc("/movies/{id}", updateMovie).Method("PUT")
+	router.HandleFunc("/movies/{id}", deleteMovie).Method("DELETE")
 	fmt.Printf("Starting server at port 8080\n")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":8080", router))
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
@@ -45,15 +45,59 @@ func getMovies(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(movies)
 }
-func getMovie() {
+func getMovieById(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	for _, item := range movies {
+		if item.ID == params["id"] {
+			json.NewEncoder(w).Encode(&item)
+			return
+		}
+	}
+}
+func createMovie(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	var item Movie
+	err := json.NewDecoder(r.Body).Decode(&item)
+	if err != nil {
+		log.Fatalln("There was an error decoding the request body into the struct")
+	}
+	movies = append(movies, item)
+	err = json.NewEncoder(w).Encode(&item)
+	if err != nil {
+		log.Fatalln("There was an error encoding the initialized struct")
+	}
 
 }
-func createMovie() {
-
+func updateMovie(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	var item Movie
+	err := json.NewDecoder(r.Body).Decode(&item)
+	if err != nil {
+		log.Fatalln("There was an error decoding the request body into the struct")
+	}
+	for index, newItem := range movies {
+		if item.ID == newItem.ID {
+			movies = append(movies[:index], movies[index+1:]...)
+		}
+	}
+	movies = append(movies, item)
+	err = json.NewEncoder(w).Encode(&item)
+	if err != nil {
+		log.Fatalln("There was an error encoding the initialized struct")
+	}
 }
-func updateMovie() {
-
-}
-func deleteMovie() {
+func deleteMovie(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id := mux.Vars(r)["id"]
+	for index, item := range movies {
+		if item.ID == id {
+			movies = append(movies[:index], movies[index+1:]...)
+			break
+		}
+	}
+	json.NewEncoder(w).Encode(movies)
 
 }

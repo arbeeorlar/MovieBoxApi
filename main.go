@@ -28,19 +28,6 @@ var movies = []Movie{
 	{ID: "4", Title: "Ati kulate", ISBN: "3444455", Director: &Director{firstName: "Test", lastName: "Testers"}},
 }
 
-func main() {
-	router := mux.NewRouter()
-	router.HandleFunc("/movies", getMovies).Method("GET")
-	router.HandleFunc("/movies/{id}", getMovieById).Method("GET")
-	router.HandleFunc("/movies", createMovie).Method("POST")
-	router.HandleFunc("/movies/{id}", updateMovie).Method("PUT")
-	router.HandleFunc("/movies/{id}", deleteMovie).Method("DELETE")
-	fmt.Printf("Starting server at port 8080\n")
-	log.Fatal(http.ListenAndServe(":8080", router))
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatal(err)
-	}
-}
 func getMovies(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(movies)
@@ -100,4 +87,18 @@ func deleteMovie(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(movies)
 
+}
+
+func main() {
+	router := mux.NewRouter()
+	router.HandleFunc("/movies", getMovies).Methods("GET")
+	router.HandleFunc("/movies/{id}", getMovieById).Methods("GET")
+	router.HandleFunc("/movies", createMovie).Methods("POST")
+	router.HandleFunc("/movies/{id}", updateMovie).Methods("PUT")
+	router.HandleFunc("/movies/{id}", deleteMovie).Methods("DELETE")
+	fmt.Printf("Starting server at port 8080\n")
+	log.Fatal(http.ListenAndServe(":8080", router))
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
+	}
 }
